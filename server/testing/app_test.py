@@ -53,12 +53,19 @@ class TestApp:
                 'username': user.username
             })
 
-            article_id = Article.query.with_entities(Article.id).first()[0]
+            # Fetch an ID of a member-only article
+            article_id = Article.query.filter_by(is_member_only=True).with_entities(Article.id).first()
+
+            # If no member-only article is found, fail the test early
+            assert article_id is not None, "No member-only articles found in the database."
+
+            article_id = article_id[0]
 
             response = client.get(f'/members_only_articles/{article_id}')
             assert(response.status_code == 200)
 
             client.delete('/logout')
+
 
             response = client.get(f'/members_only_articles/{article_id}')
             assert(response.status_code == 401)
